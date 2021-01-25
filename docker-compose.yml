@@ -1,0 +1,42 @@
+version: '3'
+services:
+  mysql:
+    image: mariadb:10.5.8
+    volumes:
+      - ./db:/var/lib/mysql
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: scott
+      MYSQL_PASSWORD: tiger
+    restart: unless-stopped
+  blog:
+    image: wordpress:5.6.0-php7.4-fpm
+    volumes:
+      - ./src/public:/var/www/html
+      - ./scripts:/scripts
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_USER: scott
+      WORDPRESS_DB_PASSWORD: tiger
+      WORDPRESS_DB_NAME: wordpress
+      MYSQL_PORT_3306_TCP: 3306
+    restart: unless-stopped
+    links:
+      - mysql
+    depends_on:
+      - mysql
+  reverse_proxy:
+    image: nginx:1.17.10
+    volumes:
+      - ./conf:/etc/nginx/conf.d
+      - ./src/public:/var/www/html
+    ports:
+      - 8080:80
+    links:
+      - blog
+
+# source:
+# 
